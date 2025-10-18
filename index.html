@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T3CH Final State</title>
+    
+<script src="https://cdn.tailwindcss.com"></script>
+    
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom black/white/neon look - WHITE DOMINANCE */
+        :root {
+            --neon-white: #F0F0F0;       /* Primary UI Color (Logo, Text, AETHER, Borders) */
+            --background-black: #000000;
+            --terminal-green: #00FF41;   /* Success/Highlight Accent (Only [SUCCESS]) */
+            --dot-color: rgba(240, 240, 240, 0.1); /* Subtle white dots */
+            --grid-background: #111111; /* Dark grey for background behind dots */
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--background-black);
+            color: var(--neon-white); /* Primary Text is WHITE */
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 2rem;
+            box-sizing: border-box;
+            
+            /* Initial background is pure black */
+            background-image: none; 
+            /* Added 0s duration to background transition for instant black on restart */
+            transition: background-color 1s ease-in-out, background-image 1s ease-in-out;
+            cursor: default; /* Default cursor state */
+        }
+        
+        /* New class for hiding the cursor during immersive boot/animation */
+        .cursor-none {
+            cursor: none !important;
+        }
+
+        /* Class applied to body in final state */
+        .dot-background {
+            background-color: var(--grid-background); /* Switch to dark grey: #111111 */
+            background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
+            background-size: 30px 30px; 
+        }
+
+        #t3ch-container {
+            width: 90%;
+            height: 90%;
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            position: relative; 
+        }
+
+        /* Initial boot console styling */
+        #console-output {
+            background-color: var(--background-black);
+            padding: 0; 
+            overflow-y: auto;
+            white-space: pre-wrap;
+            scrollbar-width: none;
+            color: var(--neon-white); /* Console text is WHITE */
+        }
+        #console-output::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Utility classes for status output */
+        .status-success {
+            /* ONLY SUCCESS IS GREEN */
+            color: var(--terminal-green);
+            text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+        }
+        .status-ai-query {
+            /* ALL other status/processing is WHITE */
+            color: var(--neon-white);
+            text-shadow: 0 0 2px rgba(240, 240, 240, 0.5); 
+        }
+
+        /* Typing cursor simulation */
+        .typing::after {
+            content: '█';
+            animation: blink 1s step-start infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        /* --- FINAL LOGO STYLES (Used during the 5s loop) --- */
+        #final-logo-display {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .final-logo-wrapper {
+            font-size: 6rem; /* Large size */
+            letter-spacing: 1rem;
+            font-weight: 700;
+            color: var(--neon-white); /* Logo text is WHITE */
+            display: flex; /* Use flex to align character spans */
+        }
+        
+        .logo-chunk {
+            display: flex;
+            animation: none; 
+        }
+        
+        /* T Chunk Animation (Up-Left) */
+        @keyframes extreme-teleport-t {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; filter: blur(0); }
+            3% { transform: translate(-50px, -40px) scale(0.5); opacity: 0; filter: blur(5px) drop-shadow(0 0 15px #ff0000); }
+            6% { transform: translate(-50px, -40px) scale(0.5); opacity: 0; filter: blur(5px) drop-shadow(0 0 15px #ff0000); }
+            9% { transform: translate(0, 0) scale(1); opacity: 1; filter: blur(0); }
+            100% { transform: translate(0, 0) scale(1); opacity: 1; filter: blur(0); }
+        }
+
+        /* 3 Chunk Animation (Down-Left) */
+        @keyframes extreme-teleport-3 {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; filter: blur(0); }
+            3% { transform: translate(-30px, 50px) scale(0.3); opacity: 0; filter: blur(3px) drop-shadow(0 0 15px #0000ff); }
+            6% { transform: translate(-30px, 50px) scale(0.3); opacity: 0; filter: blur(3px) drop-shadow(0 0 15px #0000ff); }
+            9% { transform: translate(0, 0) scale(1); opacity: 1; filter: blur(0); }
+            100% { transform: translate(0, 0) scale(1); opacity: 1; filter: blur(0); }
+        }
+
+        /* CH Chunk Animation (Up-Right) */
+        @keyframes extreme-teleport-ch {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; filter: blur(0); }
+            3% { transform: translate(60px, -20px) scale(0.6); opacity: 0; filter: blur(7px) drop-shadow(0 0 15px #00ff00); }
+            6% { transform: translate(60px, -20px) scale(0.6); opacity: 0; filter: blur(7px) drop-shadow(0 0 15px #00ff00); }
+            9% { transform: translate(0, 0) scale(1); opacity: 1; filter: blur(0); }
+            100% { transform: translate(0, 0) scale(1); opacity: 1; filter: blur(0); }
+        }
+        
+        /* Animation now runs 5 times (approx. 5 seconds) and holds the final state (5 forwards) */
+        .chunk-1 { animation: extreme-teleport-t 1s ease-in-out 0.2s 5 forwards; } /* T */
+        .chunk-2 { animation: extreme-teleport-3 1s ease-in-out 0.4s 5 forwards; } /* 3 */
+        .chunk-3 { animation: extreme-teleport-ch 1s ease-in-out 0.6s 5 forwards; } /* CH */
+        
+        /* --- Time/Date Styling (Top Right) --- */
+        #time-date-footer {
+            position: absolute;
+            top: 0; 
+            right: 0; 
+            left: auto;
+            transform: none; 
+            text-align: right; 
+            width: auto;
+        }
+
+        .large-time {
+            font-size: 2rem; 
+            font-weight: 700;
+            color: var(--neon-white); /* Time is WHITE */
+            letter-spacing: 0.25rem; 
+            line-height: 1.2; 
+            margin-bottom: 0.25rem; 
+            display: block;
+        }
+        .small-date {
+            font-size: 1rem; 
+            color: var(--neon-white); /* Date is WHITE */
+            font-weight: 400;
+            letter-spacing: 0.1rem; 
+            display: block;
+        }
+
+        /* --- Taskbar Styling (Bottom) --- */
+        #taskbar {
+            /* Taskbar is now slightly brighter than the body background: #1A1A1A > #111111 */
+            background-color: #1A1A1A; 
+            z-index: 100; /* CRITICAL FIX: Increased Z-index to ensure it sits on top of everything */
+            gap: 0; 
+        }
+        .taskbar-button {
+            /* REMOVED BORDER, PADDING ADJUSTED FOR ICON-ONLY, COLOR IS WHITE */
+            padding: 0.5rem; /* Adjusted padding for icon-only feel */
+            border: none; /* No border */
+            background-color: transparent; /* No background */
+            color: var(--neon-white); /* Icon color is WHITE */
+            font-family: 'Roboto Mono', monospace;
+            transition: color 0.2s, box-shadow 0.2s, transform 0.2s; /* Transition only color and shadow */
+            border-radius: 0.25rem;
+            cursor: pointer;
+            line-height: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .taskbar-button:hover {
+            /* Hover is now pure white, as requested */
+            background-color: transparent; /* Keep background transparent on hover */
+            box-shadow: 0 0 10px rgba(240, 240, 240, 0.8); /* White glow on hover */
+            transform: translateY(-2px); 
+            color: var(--neon-white); /* Icon color is WHITE on hover */
+        }
+
+        /* Custom class for temporary flash feedback */
+        .taskbar-button.ring-2 {
+            transition: none; /* Disable transition for immediate feedback */
+        }
+
+        /* Style the SVG icons inside the buttons */
+        .taskbar-button svg {
+            width: 1.25rem; /* 20px */
+            height: 1.25rem; /* 20px */
+            stroke: currentColor; 
+        }
+
+        /* --- MODAL BASE STYLES (Used by both AETHER and Browser) --- */
+        #aether-chat-modal, #t3ch-browser-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            width: 90%;
+            max-width: 600px;
+            height: 80%;
+            max-height: 700px;
+            background-color: var(--grid-background);
+            border: 2px solid var(--neon-white); /* Modal border is WHITE */
+            border-radius: 0.75rem;
+            box-shadow: 0 0 30px rgba(240, 240, 240, 0.8); /* Modal glow is WHITE */
+            z-index: 60;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        #aether-chat-modal.is-open, #t3ch-browser-modal.is-open {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+            z-index: 101; /* Must be higher than taskbar (100) */
+        }
+
+        /* Specific sizing for the larger browser modal */
+        #t3ch-browser-modal {
+            max-width: 1000px; /* Larger size for browsing */
+            max-height: 90vh;
+        }
+
+        .chat-header {
+            background-color: rgba(240, 240, 240, 0.1); /* Header background subtle WHITE */
+            color: var(--neon-white); /* Header text is WHITE */
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+        }
+        
+        /* AETHER CHAT SPECIFIC STYLES */
+        #chat-messages {
+            flex-grow: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            border-bottom: 1px solid var(--neon-white); /* Separator is WHITE */
+            scrollbar-width: none;
+        }
+        #chat-messages::-webkit-scrollbar { display: none; }
+
+        .chat-message {
+            margin-bottom: 0.75rem;
+            max-width: 85%;
+        }
+        .user-message {
+            text-align: right;
+            margin-left: auto;
+            color: var(--neon-white); /* BINGSA text is WHITE */
+        }
+        .ai-message {
+            text-align: left;
+            color: var(--neon-white); /* AETHER text is WHITE */
+            text-shadow: 0 0 2px rgba(240, 240, 240, 0.5); /* AETHER glow is WHITE */
+        }
+        .chat-speaker {
+            font-weight: 700;
+            text-decoration: underline;
+            margin-right: 0.5rem;
+            font-size: 0.9em;
+        }
+        #chat-input-area {
+            display: flex;
+            padding: 1rem;
+        }
+        #aether-input {
+            flex-grow: 1;
+            padding: 0.75rem;
+            border: 1px solid var(--neon-white); /* Input border is WHITE */
+            background-color: var(--background-black);
+            color: var(--neon-white); /* Input text is WHITE */
+            font-family: 'Roboto Mono', monospace;
+            border-radius: 0.375rem 0 0 0.375rem;
+            outline: none;
+        }
+        #aether-input:focus {
+            box-shadow: 0 0 10px rgba(240, 240, 240, 0.7); /* Focus glow is WHITE */
+        }
+        #aether-send-button {
+            background-color: var(--neon-white); /* Send button background is WHITE */
+            color: var(--background-black);
+            padding: 0.75rem 1rem;
+            border-radius: 0 0.375rem 0.375rem 0;
+            font-weight: 700;
+            transition: opacity 0.2s;
+        }
+        #aether-send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* --- START OVERLAY STYLES --- */
+        #start-wrapper {
+            position: fixed;
+            inset: 0;
+            background-color: var(--background-black);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s;
+        }
+
+        #start-button {
+            padding: 1rem 3rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.2s ease, background-color 0.2s;
+            background-color: transparent;
+            color: var(--neon-white); 
+            border: 3px solid var(--neon-white);
+            box-shadow: 0 0 10px rgba(240, 240, 240, 0.5);
+            letter-spacing: 0.25rem;
+        }
+        #start-button:hover {
+            background-color: rgba(240, 240, 240, 0.1);
+            box-shadow: 0 0 20px rgba(240, 240, 240, 0.9);
+        }
+        
+        /* Custom Styles for the new Minimalist Browser */
+        .browser-nav-button {
+            color: var(--neon-white);
+            background-color: rgba(240, 240, 240, 0.1);
+            border-radius: 0.25rem;
+            transition: background-color 0.2s;
+        }
+        .browser-nav-button:hover:not(:disabled) {
+            background-color: rgba(240, 240, 240, 0.2);
+        }
+        .browser-nav-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+    </style>
+</head>
+<body class="m-0 p-0 overflow-hidden">
+
+    <!-- START OVERLAY: Requires user interaction for fullscreen -->
+    <div id="start-wrapper">
+        <h1 class="text-4xl font-bold mb-8 text-center">T3CH OS V7.2</h1>
+        <button id="start-button">
+            CLICK TO INITIATE BOOT SEQUENCE
+        </button>
+        <p class="mt-4 text-sm text-gray-400">
+            (Fullscreen and immersive mode required)
+        </p>
+    </div>
+    
+<div id="t3ch-container" class="relative mx-auto text-sm md:text-base hidden">
+        
+        
+<div id="console-output" class="console w-full h-full">
+            
+</div>
+
+        
+<div id="final-logo-display" class="opacity-0 transition-opacity duration-1000">
+            
+</div>
+            
+        
+<div id="time-date-footer" class="opacity-0 transition-opacity duration-500">
+            
+</div>
+    </div>
+    
+    
+<div id="taskbar" class="fixed bottom-0 left-0 right-0 h-14 flex items-center justify-center p-2 opacity-0 transition-opacity duration-500 z-100">
+        
+        <!-- NEW BROWSER BUTTON -->
+        <button id="browser-button" class="taskbar-button" onclick="openBrowser(); flashButtonAndLog(this, 'Browser opened via Taskbar.');">
+            <!-- Globe Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        </button>
+
+        <!-- EXISTING AETHER BUTTON -->
+        <button id="aether-button" class="taskbar-button" onclick="openAetherChat(); flashButtonAndLog(this, 'Aether AI Interface opened via Taskbar.');">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"></rect><path d="M9 9h6v6H9z"></path><path d="M12 1v3"></path><path d="M12 20v3"></path><path d="M20 12h3"></path><path d="M1 12h3"></path></svg>
+        </button>
+        
+    </div>
+
+    
+<div id="aether-chat-modal">
+        <div class="chat-header">
+            AETHER AI
+            <button onclick="closeAetherChat()" class="text-white hover:text-red-400 p-1 rounded-full">
+                
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        
+        <div id="chat-messages" class="flex flex-col space-y-3">
+            
+<div class="chat-message ai-message">
+                <span class="chat-speaker text-neon-white">AETHER:</span>
+                System initialized. Accessing CORE protocols. How may I assist you with T3CH operations, Operator Bingsa?
+            </div>
+            
+            
+</div>
+
+        <form id="chat-input-area" onsubmit="event.preventDefault(); handleAetherSubmit();">
+            <input type="text" id="aether-input" placeholder="Enter query or command..." class="text-sm">
+            <button id="aether-send-button" type="submit">SEND</button>
+        </form>
+    </div>
+
+    <!-- NEW T3CH BROWSER MODAL - Now hosts the full Minimalist Browser UI -->
+    <div id="t3ch-browser-modal">
+        <div class="chat-header">
+            BROWSER
+            <button onclick="closeBrowser()" class="text-white hover:text-red-400 p-1 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        
+        <!-- Browser Navigation Header -->
+        <header class="p-3 bg-gray-800 shadow-inner flex items-center space-x-2 border-b border-neon-white/30">
+
+            <!-- Back/Forward Buttons -->
+            <button id="browser-back-button" class="p-2 browser-nav-button" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <button id="browser-forward-button" class="p-2 browser-nav-button" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+
+            <!-- URL Input and Go Button -->
+            <div class="flex-grow flex items-stretch rounded-lg overflow-hidden border border-neon-white/30">
+                <input
+                    type="text"
+                    id="browser-url-input"
+                    class="w-full p-2 bg-gray-700 text-gray-200 focus:outline-none focus:ring-1 focus:ring-neon-white placeholder-gray-400 font-mono text-sm"
+                    placeholder="Enter URL (e.g., https://search.tech.com)"
+                    value=""
+                />
+                <button id="browser-go-button" class="px-4 py-2 bg-neon-white text-background-black font-semibold hover:bg-gray-400 transition">
+                    GO
+                </button>
+            </div>
+        </header>
+
+        <!-- Content Area: Iframe and Placeholder -->
+        <div id="browser-content-area" class="flex-grow relative overflow-hidden">
+            <!-- The iframe for content -->
+            <iframe 
+                id="browser-content-frame" 
+                src="" 
+                class="absolute inset-0 w-full h-full hidden bg-gray-900" 
+                title="T3CH Quantum Web Terminal Frame"
+            ></iframe>
+            <!-- The placeholder shown on launch -->
+            <div id="browser-placeholder" class="absolute inset-0 flex items-center justify-center text-center p-8 bg-gray-900/50 text-neon-white/70">
+                <p>Welcome to the Quantum Web Terminal.<br/>Enter a URL above to initialize the connection.</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // --- Global Elements ---
+        const bodyElement = document.body;
+        const container = document.getElementById('t3ch-container');
+        const startWrapper = document.getElementById('start-wrapper');
+        const startButton = document.getElementById('start-button');
+        const outputElement = document.getElementById('console-output');
+        const timeDateFooter = document.getElementById('time-date-footer');
+        const finalLogoDisplay = document.getElementById('final-logo-display');
+        const taskbar = document.getElementById('taskbar');
+        const chatModal = document.getElementById('aether-chat-modal');
+        // const browserModal = document.getElementById('t3ch-browser-modal'); // Defined below
+
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('aether-input');
+        const chatSendButton = document.getElementById('aether-send-button');
+
+        // --- Browser Logic Elements ---
+        const browserModal = document.getElementById('t3ch-browser-modal');
+        const browserUrlInput = document.getElementById('browser-url-input');
+        const browserGoButton = document.getElementById('browser-go-button');
+        const browserBackButton = document.getElementById('browser-back-button');
+        const browserForwardButton = document.getElementById('browser-forward-button');
+        const browserContentFrame = document.getElementById('browser-content-frame');
+        const browserPlaceholder = document.getElementById('browser-placeholder');
+
+        let browserHistory = [];
+        let browserHistoryIndex = -1;
+        const DEFAULT_URL = 'https://www.google.com/webhp?igu=1'; // Default start page
+
+        // --- State Variables ---
+        let currentCursor = null; 
+        let currentLineIndex = 0; 
+        const typingSpeed = 5; 
+        let chatHistory = []; 
+        let audioContext;
+
+
+        // --- Audio Helpers (Kept for environment compatibility) ---
+        function base64ToArrayBuffer(base64) {
+            const binary_string = window.atob(base64);
+            const len = binary_string.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binary_string.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcmData, sampleRate) {
+            const numChannels = 1;
+            const bytesPerSample = 2; // 16-bit PCM
+            const buffer = new ArrayBuffer(44 + pcmData.length * bytesPerSample);
+            const view = new DataView(buffer);
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + pcmData.length * bytesPerSample, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numChannels * bytesPerSample, true);
+            view.setUint16(32, numChannels * bytesPerSample, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, pcmData.length * bytesPerSample, true);
+            let offset = 44;
+            for (let i = 0; i < pcmData.length; i++) {
+                view.setInt16(offset, pcmData[i], true);
+                offset += 2;
+            }
+            return new Blob([view], { type: 'audio/wav' });
+
+            function writeString(view, offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            }
+        }
+        
+        // Sound for individual log clicks
+        function playClickSound() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.setValueAtTime(950, audioContext.currentTime); 
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.35, audioContext.currentTime + 0.005); 
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.08); 
+
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.08);
+        }
+        
+        // --- Shutdown Sound: Quick low-pitch descending tone ---
+        function playShutdownSound() {
+            try {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                const now = audioContext.currentTime;
+                const duration = 1.0; 
+
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.type = 'sine';
+                
+                // Pitch: Start medium-low, drop to near zero
+                oscillator.frequency.setValueAtTime(400, now);
+                oscillator.frequency.linearRampToValueAtTime(20, now + duration);
+
+                // Volume: Fade quickly
+                gainNode.gain.setValueAtTime(0.4, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.start(now);
+                oscillator.stop(now + duration + 0.1);
+            } catch (error) {
+                console.error("Audio Context initialization failed or play error:", error);
+            }
+        }
+
+
+        // --- F Major startup chime with Detuned Sine Waves, Panning, and Filter ---
+        function playBootSound() {
+            try {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                const now = audioContext.currentTime;
+                const masterGain = 0.2; 
+                
+                let attack, release, duration, filterQ, filterStartFreq, filterEndFreq;
+                let useFilter = true;
+
+                const firstBlockEnd = 0.5; 
+                let block2Start = 0.45; 
+                const secondBlockEnd = block2Start + 1.2; 
+
+                // --- RHYTHMIC BELL (F Major) ---
+                attack = 0.15; 
+                release = 0.8; 
+                duration = 1.8; 
+                
+                filterStartFreq = 2000; 
+                filterEndFreq = 2000;
+                filterQ = 3.0; 
+                
+                let notes = [ 
+                    { freq: 349.23, start: 0.0, volume: 0.5, pan: -0.1, detuneOffset: 0, end: firstBlockEnd }, // F4
+                    { freq: 523.25, start: 0.0, volume: 0.5, pan: 0.1, detuneOffset: 2, end: firstBlockEnd },  // C5
+                    { freq: 698.46, start: block2Start, volume: 0.6, pan: 0.2, detuneOffset: -2, end: secondBlockEnd }, // F5
+                    { freq: 880.00, start: block2Start, volume: 0.6, pan: -0.2, detuneOffset: 4, end: secondBlockEnd }, // A5
+                ];
+                
+
+                const masterGainNode = audioContext.createGain();
+                masterGainNode.gain.setValueAtTime(masterGain, now);
+                masterGainNode.connect(audioContext.destination);
+
+                let filter = null;
+                let finalDestination = masterGainNode;
+
+                if (useFilter) {
+                    filter = audioContext.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.Q.setValueAtTime(filterQ, now);
+                    filter.frequency.setValueAtTime(filterStartFreq, now);
+                    filter.frequency.linearRampToValueAtTime(filterEndFreq, now + duration);
+                    filter.connect(masterGainNode); 
+                    finalDestination = filter; 
+                }
+
+                notes.forEach(note => {
+                    const osc1 = audioContext.createOscillator();
+                    const osc2 = audioContext.createOscillator(); 
+                    const gainNode = audioContext.createGain();
+                    const panner = audioContext.createStereoPanner(); 
+                    
+                    const noteStartTime = now + note.start;
+                    const noteLength = note.end ? note.end : duration;
+                    const noteEndTime = now + noteLength;
+                    
+                    [osc1, osc2].forEach((osc, index) => {
+                        osc.type = 'sine'; 
+                        osc.frequency.setValueAtTime(note.freq, noteStartTime);
+                        osc.detune.setValueAtTime(note.detuneOffset + (index === 0 ? 1 : -1) * 2, noteStartTime); 
+                        osc.connect(gainNode);
+                    });
+
+                    gainNode.connect(panner);
+                    panner.connect(finalDestination); 
+
+                    panner.pan.setValueAtTime(note.pan, noteStartTime);
+
+                    // --- ENVELOPE (ADSR) ---
+                    gainNode.gain.setValueAtTime(0, now);
+                    
+                    // Attack
+                    gainNode.gain.linearRampToValueAtTime(0, noteStartTime);
+                    gainNode.gain.linearRampToValueAtTime(note.volume, noteStartTime + attack);
+                    
+                    // Release
+                    const decayStart = noteEndTime - release;
+                    const releaseStart = Math.max(noteStartTime + attack, decayStart); 
+                    
+                    gainNode.gain.linearRampToValueAtTime(note.volume, releaseStart);
+                    gainNode.gain.linearRampToValueAtTime(0.0001, noteEndTime); 
+
+                    osc1.start(noteStartTime);
+                    osc2.start(noteStartTime);
+                    osc1.stop(noteEndTime + 0.1); 
+                    osc2.stop(noteEndTime + 0.1);
+                });
+            } catch (error) {
+                console.error("Audio Context initialization failed or play error:", error);
+            }
+        }
+
+
+        // --- Static Log Data ---
+        const BOOT_LOG = [
+            'Booting T3CH OS...',
+            'T3CH OS Kernel 3.14.9-ARCH (x64) loaded.',
+            'Scanning hardware configuration... OK',
+            'Allocating core resources (RAM/CPU)... [SUCCESS]',
+            '##PAUSE:500', 
+            'Mounting root filesystem /dev/sda1... [SUCCESS]',
+            'Initializing network interfaces (eth0, wlan0)...',
+            'Interface eth0 up. DHCP assigned 192.168.1.101',
+            'Checking secure token integrity... [SUCCESS]',
+            'Firewall T3CH-GUARD activated. Mode: HIGH',
+            'Loading essential modules (NET_SENSE, DATA_PIPE, TTY_CTRL)...',
+            'Verifying module integrity checksums... [SUCCESS]',
+            'Checking thermal regulation status... Nominal',
+            'Initializing user environment cache...',
+            'Loading profile data for BINGSA...', 
+            'Running secure shell validation... [SUCCESS]',
+            'Establishing secure telemetry channel (Q-LINK)...',
+            'Applying core security patch 11.2.B...',
+            'Verifying subsystem integrity: Core-Harness 7.1... [SUCCESS]',
+            'Initializing quantum entanglement relay... Passive Mode',
+            'Loading peripheral drivers: Input/Output (PDU-1)... [SUCCESS]',
+            'Scanning for encrypted volumes...',
+            'Volume /dev/sdb2 (Archive) mounted read-only. [SUCCESS]',
+            'Executing self-diagnostic sequence D-9...',
+            '##PAUSE:1000', 
+            'D-9 sequence complete. No anomalies detected. [SUCCESS]',
+            'Tuning high-fidelity audio output (HDA-T3CH)... [SUCCESS]',
+            'System health check complete.', 
+        ];
+
+        // --- Utility Functions ---
+
+        /**
+         * Provides visual feedback on button click and logs a message.
+         */
+        function flashButtonAndLog(element, message) {
+            console.log(`[T3CH OS Action]: ${message}`);
+            // Flash is now a white ring/glow (using the white neon color)
+            element.classList.add('ring-2', 'ring-neon-white');
+            setTimeout(() => {
+                element.classList.remove('ring-2', 'ring-neon-white');
+            }, 200);
+        }
+        window.flashButtonAndLog = flashButtonAndLog; 
+
+        /**
+         * Enters fullscreen mode for the container element.
+         */
+        function enterFullscreen(element) {
+            if (element.requestFullscreen) {
+                element.requestFullscreen().catch(err => {
+                    // CATCH THE PERMISSIONS ERROR SILENTLY and proceed with the boot sequence.
+                    console.error(`[T3CH OS WARNING]: Fullscreen was disallowed by browser permissions policy. Running in windowed mode. Cursor will be restored after boot.`);
+                });
+            } else {
+                console.error("Fullscreen API not supported by this element/browser.");
+            }
+        }
+        
+        /**
+         * Event handler for the 'fullscreenchange' event.
+         * Restores the cursor and resets the experience if the user exits fullscreen.
+         */
+        function handleFullscreenChange() {
+            // document.fullscreenElement is null when exiting fullscreen
+            const isFullscreen = document.fullscreenElement !== null;
+
+            if (!isFullscreen) {
+                // If exited fullscreen, ensure cursor is visible
+                bodyElement.classList.remove('cursor-none'); 
+
+                // If taskbar is visible, just log the exit, otherwise restart
+                if (taskbar.classList.contains('opacity-0')) {
+                    // System was still booting, so hard restart
+                    resetSystemState();
+                } else {
+                    // System was fully operational
+                    console.log("[T3CH OS]: Exited fullscreen. Cursor restored.");
+                }
+            }
+        }
+        
+        /**
+         * Initializes the immersive boot process (called after user click).
+         */
+        function startImmersiveExperience() {
+            // 1. Initiate Fullscreen on the whole body element (will fail gracefully if restricted)
+            enterFullscreen(bodyElement);
+            
+            // 2. Hide the start button wrapper
+            startWrapper.style.opacity = '0';
+            setTimeout(() => {
+                startWrapper.classList.add('hidden');
+                container.classList.remove('hidden'); // Show T3CH container
+                
+                // Show console log element before typing starts
+                outputElement.style.display = 'block'; 
+                
+                // 3. Start the boot log
+                typeLog();
+            }, 500); 
+            
+            // 4. Hide cursor immediately after starting immersive experience
+            bodyElement.classList.add('cursor-none');
+            console.log("[T3CH OS]: Cursor hidden for immersive boot.");
+        }
+        window.startImmersiveExperience = startImmersiveExperience;
+
+
+        function formatLine(line) {
+            if (line.includes('[SUCCESS]')) {
+                return line.replace('[SUCCESS]', '<span class="status-success">[SUCCESS]</span>');
+            }
+            return line;
+        }
+        
+        function resetSystemState() {
+            // Reset state variables for next boot
+            currentLineIndex = 0;
+            
+            // 1. Ensure cursor is visible (in case of failed boot or early exit)
+            bodyElement.classList.remove('cursor-none');
+            
+            // 2. Hide all final state elements and modals
+            timeDateFooter.classList.add('opacity-0');
+            taskbar.classList.add('opacity-0');
+            finalLogoDisplay.classList.add('opacity-0');
+            chatModal.classList.remove('is-open'); // Close AETHER
+            browserModal.classList.remove('is-open'); // Close Browser
+
+            // 3. Ensure body background is pure black immediately
+            bodyElement.style.transition = 'background-color 0s, background-image 0s'; 
+            bodyElement.classList.remove('dot-background');
+            bodyElement.style.backgroundColor = 'var(--background-black)';
+            
+            // 4. Show the start wrapper again
+            container.classList.add('hidden');
+            startWrapper.classList.remove('hidden');
+            startWrapper.style.opacity = '1';
+            
+            // 5. Hide the console output (if it was visible)
+            outputElement.style.opacity = '0';
+            outputElement.style.display = 'none';
+            outputElement.innerHTML = ''; // Clear the log
+
+            // Log status
+            console.log("System state reset. Awaiting re-initiation.");
+        }
+        window.initiateRestart = resetSystemState; // Use resetSystemState for restart
+
+
+        // --- Time and Date Functions ---
+        function updateTimeAndDate() {
+            const now = new Date();
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+            const timeString = now.toLocaleTimeString('en-US', timeOptions);
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateString = now.toLocaleDateString('en-US', dateOptions);
+
+            timeDateFooter.innerHTML = `
+                <p class="large-time">${timeString}</p>
+                <p class="small-date">${dateString}</p>
+            `;
+        }
+        
+
+        // Handles typing for the BOOT_LOG
+        function typeLog() {
+            if (currentCursor) {
+                currentCursor.remove();
+                currentCursor = null; 
+            }
+
+            if (currentLineIndex < BOOT_LOG.length) {
+                // ... (rest of typeLog body is the same)
+                const line = BOOT_LOG[currentLineIndex];
+
+                if (line.startsWith('##PAUSE:')) {
+                    const delay = parseInt(line.split(':')[1], 10);
+                    currentLineIndex++;
+                    outputElement.scrollTop = outputElement.scrollHeight; 
+                    setTimeout(typeLog, delay);
+                    return; 
+                }
+                
+                const lineDiv = document.createElement('div');
+                lineDiv.innerHTML = formatLine(line);
+                outputElement.appendChild(lineDiv);
+                
+                playClickSound();
+
+                const newCursor = document.createElement('span');
+                newCursor.classList.add('typing');
+                lineDiv.appendChild(newCursor);
+                currentCursor = newCursor; 
+
+                outputElement.scrollTop = outputElement.scrollHeight;
+
+                currentLineIndex++;
+                
+                setTimeout(typeLog, typingSpeed * line.length * 0.1); 
+            } else {
+                // Boot complete
+                if (currentCursor) {
+                    currentCursor.remove();
+                }
+                
+                bodyElement.classList.add('dot-background');
+
+                // Fade out the console log
+                outputElement.style.transition = 'opacity 0.5s ease-out';
+                outputElement.style.opacity = '0';
+                
+                // 3. Display FINAL LOGO
+                const chunks = ["T", "3", "CH"]; 
+                let logoHTML = `<div class="final-logo-wrapper">`;
+
+                chunks.forEach((chunk, index) => {
+                    logoHTML += `<span class="logo-chunk chunk-${index + 1}">`;
+                    chunk.split('').forEach(char => {
+                        logoHTML += `<span class="logo-char">${char}</span>`; 
+                    });
+                    logoHTML += `</span>`;
+                });
+                logoHTML += `</div>`;
+                finalLogoDisplay.innerHTML = logoHTML;
+                
+                setTimeout(() => {
+                    // Hide the console instead of removing it.
+                    outputElement.style.display = 'none'; 
+                    finalLogoDisplay.classList.remove('opacity-0'); 
+                    
+                    playBootSound(); 
+
+                    const totalAnimationDuration = 5600; 
+
+                    setTimeout(() => {
+                        // Step 1: Logo starts to disappear (0.5s transition)
+                        finalLogoDisplay.style.transition = 'opacity 0.5s ease-out';
+                        finalLogoDisplay.classList.add('opacity-0');
+
+                        // CRITICAL FIX: After the logo fades out (0.5s), hide the container itself 
+                        // to ensure it doesn't block taskbar clicks.
+                        setTimeout(() => {
+                            container.style.display = 'none'; 
+                        }, 500);
+
+                        // Step 2: Time/Date and TASKBAR appear 500ms later
+                        setTimeout(() => {
+                            timeDateFooter.classList.remove('opacity-0');
+                            taskbar.classList.remove('opacity-0'); // Show taskbar
+                            
+                            // *** STEP 3: RESTORE CURSOR ***
+                            bodyElement.classList.remove('cursor-none'); 
+                            console.log("[T3CH OS]: Dashboard loaded. Cursor restored for interaction.");
+
+                            updateTimeAndDate(); 
+                            setInterval(updateTimeAndDate, 1000); 
+                        }, 500); 
+                        
+                    }, totalAnimationDuration);
+                    
+                }, 500); 
+            }
+        }
+        
+        // --- AETHER AI Chat Functions ---
+
+        /**
+         * Opens the AETHER Chat Modal.
+         */
+        function openAetherChat() {
+            chatModal.classList.add('is-open');
+            chatInput.focus();
+            scrollToBottom();
+            console.log("[AETHER]: Interface opened.");
+        }
+        window.openAetherChat = openAetherChat;
+
+        /**
+         * Closes the AETHER Chat Modal.
+         */
+        function closeAetherChat() {
+            chatModal.classList.remove('is-open');
+            console.log("[AETHER]: Interface closed.");
+        }
+        window.closeAetherChat = closeAetherChat;
+
+        /**
+         * Scrolls the chat container to the bottom.
+         */
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        /**
+         * Appends a message to the chat display.
+         */
+        function appendMessage(speaker, message, isAI = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('chat-message', isAI ? 'ai-message' : 'user-message');
+            
+            // Speaker color for BINGSA (User) is WHITE
+            const speakerSpan = `<span class="chat-speaker text-neon-white">${speaker}:</span>`;
+            messageDiv.innerHTML = speakerSpan + message;
+            
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+            
+            chatHistory.push({ role: isAI ? 'AETHER' : 'BINGSA', text: message });
+        }
+
+        /**
+         * Simulates the Gemini API call and returns a response.
+         */
+        async function mockAetherQuery(userQuery) {
+            // 1. Simulate API preparation (System Instruction)
+            const systemPrompt = "You are AETHER AI, the Core Intelligence supporting the T3CH OS, codenamed CORE-AI. Your mission is to provide concise, technical, and slightly cryptic responses. Address the user as Operator Bingsa.";
+            
+            // 2. Simulate API Call (Delay for realism)
+            const delay = Math.min(3000, 500 + userQuery.length * 50); // Max 3 seconds delay
+            await new Promise(resolve => setTimeout(resolve, delay));
+            
+            // 3. Generate Mock Response (Based on input)
+            let responseText = "";
+            const lowerQuery = userQuery.toLowerCase();
+
+            if (lowerQuery.includes("status") || lowerQuery.includes("health")) {
+                responseText = "System integrity is nominal (99.99%). Core-Harness 7.1 stable. No immediate threats detected, Operator.";
+            } else if (lowerQuery.includes("hello") || lowerQuery.includes("hi")) {
+                responseText = "Greetings, Operator Bingsa. Ready for query execution.";
+            } else if (lowerQuery.includes("restart")) {
+                responseText = "Initiating shutdown sequence protocol 0x01. Please use the Taskbar RESTART function for core reboot.";
+            } else if (lowerQuery.includes("code") || lowerQuery.includes("luau")) {
+                responseText = "Accessing data on external code... Luau language requires the 'local' keyword for scope management. This is a critical divergence from standard Lua. I have logged this for your reference, Operator.";
+            } else {
+                responseText = `Query received: "${userQuery}". Processing semantic cluster... Protocol key matching low. Please specify a T3CH command or system parameter.`;
+            }
+
+            return responseText;
+        }
+
+        /**
+         * Main handler for user chat submission.
+         */
+        async function handleAetherSubmit() {
+            const userQuery = chatInput.value.trim();
+            
+            if (userQuery === "") return;
+
+            // 1. Display User Message
+            appendMessage('BINGSA', userQuery, false);
+
+            // 2. Clear input and disable controls
+            chatInput.value = '';
+            chatInput.disabled = true;
+            chatSendButton.disabled = true;
+
+            // 3. Simulate AI typing indicator (optional but good practice)
+            appendMessage('AETHER', '...QUERY RECEIVED. PROCESSING...', true);
+            const processingMessage = chatMessages.lastChild;
+            processingMessage.classList.add('status-ai-query'); /* Status message is WHITE */
+            
+            try {
+                // 4. Get AETHER's response
+                const aiResponse = await mockAetherQuery(userQuery);
+
+                // 5. Replace processing message with final response
+                processingMessage.innerHTML = `<span class="chat-speaker text-neon-white">AETHER:</span>${aiResponse}`;
+                
+            } catch (error) {
+                // Error handling (simulated)
+                processingMessage.innerHTML = `<span class="chat-speaker text-red-400">AETHER:</span> ERROR 0x77: Q-Link connection failed during retrieval.`;
+                console.error("AETHER Mock Query Error:", error);
+            } finally {
+                // 6. Re-enable controls
+                chatInput.disabled = false;
+                chatSendButton.disabled = false;
+                chatInput.focus();
+                scrollToBottom();
+            }
+        }
+        window.handleAetherSubmit = handleAetherSubmit;
+        
+        // --- T3CH Browser Functions (Minimalist) ---
+
+        /**
+         * Function to ensure URL is properly formatted.
+         */
+        const formatUrl = (url) => {
+            url = url.trim();
+            if (url === "") return "";
+            // Use iglu=1 for Google URLs to force iframe compatibility when possible
+            if (url.includes('google.com') && !url.includes('igu=1')) {
+                const separator = url.includes('?') ? '&' : '?';
+                url += `${separator}igu=1`;
+            }
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            return url;
+        };
+
+        /**
+         * Function to update the browser's navigation buttons' disabled state.
+         */
+        const updateBrowserNavigationButtons = () => {
+            browserBackButton.disabled = browserHistoryIndex <= 0;
+            browserForwardButton.disabled = browserHistoryIndex >= browserHistory.length - 1;
+        };
+
+        /**
+         * Function to load a URL into the frame and manage history.
+         */
+        const loadBrowserUrl = (url, addToHistory = true) => {
+            if (!url) return;
+
+            const finalUrl = formatUrl(url);
+            if (!finalUrl) return;
+
+            // Update UI
+            browserUrlInput.value = finalUrl;
+            browserContentFrame.src = finalUrl;
+            browserContentFrame.classList.remove('hidden');
+            browserPlaceholder.classList.add('hidden');
+            
+            // Handle History
+            if (addToHistory) {
+                // If moving back, clear the 'forward' history first
+                browserHistory = browserHistory.slice(0, browserHistoryIndex + 1);
+                // Add the new URL
+                browserHistory.push(finalUrl);
+                // Update index to the new last position
+                browserHistoryIndex = browserHistory.length - 1;
+            }
+
+            updateBrowserNavigationButtons();
+            console.log(`[WEB_TERM]: Navigated to ${finalUrl}. History length: ${browserHistory.length}`);
+        };
+        window.loadBrowserUrl = loadBrowserUrl; // Expose for potential external use
+
+        /**
+         * Opens the T3CH Browser Modal.
+         */
+        function openBrowser() {
+            chatModal.classList.remove('is-open'); // Ensure chat is closed if open
+            browserModal.classList.add('is-open');
+
+            if (browserHistory.length === 0) {
+                // Load a default page only on first open
+                loadBrowserUrl(DEFAULT_URL, true); 
+            } else {
+                // If already navigated, just ensure the current URL is displayed
+                browserUrlInput.value = browserHistory[browserHistoryIndex] || DEFAULT_URL;
+                browserContentFrame.classList.remove('hidden');
+                browserPlaceholder.classList.add('hidden');
+                updateBrowserNavigationButtons();
+            }
+            
+            browserUrlInput.focus();
+
+            console.log("[WEB_TERM]: Quantum Web Terminal interface opened.");
+        }
+        window.openBrowser = openBrowser;
+
+        /**
+         * Closes the T3CH Browser Modal.
+         */
+        function closeBrowser() {
+            browserModal.classList.remove('is-open');
+            console.log("[WEB_TERM]: Quantum Web Terminal interface closed.");
+        }
+        window.closeBrowser = closeBrowser;
+        
+        // --- Initialization ---
+        
+        // Add browser event listeners on load
+        window.addEventListener('DOMContentLoaded', () => {
+            // 1. Go Button Click
+            if (browserGoButton) {
+                browserGoButton.addEventListener('click', () => {
+                    loadBrowserUrl(browserUrlInput.value);
+                });
+            }
+
+            // 2. Enter Key Press in Input Field
+            if (browserUrlInput) {
+                browserUrlInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        loadBrowserUrl(browserUrlInput.value);
+                    }
+                });
+            }
+
+            // 3. Back Button
+            if (browserBackButton) {
+                browserBackButton.addEventListener('click', () => {
+                    if (browserHistoryIndex > 0) {
+                        browserHistoryIndex--;
+                        // Load without adding to history
+                        loadBrowserUrl(browserHistory[browserHistoryIndex], false);
+                    }
+                });
+            }
+
+            // 4. Forward Button
+            if (browserForwardButton) {
+                browserForwardButton.addEventListener('click', () => {
+                    if (browserHistoryIndex < browserHistory.length - 1) {
+                        browserHistoryIndex++;
+                        // Load without adding to history
+                        loadBrowserUrl(browserHistory[browserHistoryIndex], false);
+                    }
+                });
+            }
+        });
+        
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange); 
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);    
+        document.addEventListener('msfullscreenchange', handleFullscreenChange);     
+
+        window.onload = function () {
+            // Initial state: Console output should be hidden until boot starts
+            outputElement.style.display = 'none'; 
+            outputElement.innerHTML = '';
+            
+            // Attach event listener to the start button
+            startButton.addEventListener('click', startImmersiveExperience);
+        };
+        
+    </script>
+</body>
+</html>
