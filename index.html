@@ -17,12 +17,18 @@
             --dot-color: rgba(240, 240, 240, 0.1); /* Subtle white dots */
             --grid-background: #111111; /* Dark grey for background behind dots */
         }
+        
+        /* FIX: Ensure HTML takes full height for 100vh on body to work perfectly */
+        html {
+            height: 100%; 
+        }
 
         body {
             font-family: 'Roboto Mono', monospace;
             background-color: var(--background-black);
             color: var(--neon-white); /* Primary Text is WHITE */
             height: 100vh;
+            width: 100vw; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -30,11 +36,10 @@
             padding: 2rem;
             box-sizing: border-box;
             
-            /* Initial background is pure black */
+            /* Background transition is now only used for the smooth fade back to black on restart/reset */
             background-image: none; 
-            /* Added 0s duration to background transition for instant black on restart */
             transition: background-color 1s ease-in-out, background-image 1s ease-in-out;
-            cursor: default; /* Default cursor state */
+            cursor: default; 
         }
         
         /* New class for hiding the cursor during immersive boot/animation */
@@ -50,11 +55,9 @@
             user-select: none;         /* Standard */
         }
 
-        /* Class applied to body in final state */
+        /* The dot-background class is now only used as a marker, not for styling */
         .dot-background {
-            background-color: var(--grid-background); /* Switch to dark grey: #111111 */
-            background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
-            background-size: 30px 30px; 
+            /* Styles are now applied via JS for instant visual change */
         }
 
         #t3ch-container {
@@ -885,8 +888,9 @@
 
             // 3. Ensure body background is pure black immediately
             bodyElement.style.transition = 'background-color 0s, background-image 0s'; 
-            bodyElement.classList.remove('dot-background');
             bodyElement.style.backgroundColor = 'var(--background-black)';
+            // FIX: Ensure background image is also reset to 'none' on restart
+            bodyElement.style.backgroundImage = 'none'; 
             
             // 4. Show the start wrapper again
             container.classList.remove('hidden'); // Ensure container is NOT hidden before reset
@@ -931,7 +935,6 @@
             }
 
             if (currentLineIndex < BOOT_LOG.length) {
-                // ... (rest of typeLog body is the same)
                 const line = BOOT_LOG[currentLineIndex];
 
                 if (line.startsWith('##PAUSE:')) {
@@ -964,7 +967,10 @@
                     currentCursor.remove();
                 }
                 
-                bodyElement.classList.add('dot-background');
+                // FIX: Apply dot background styles instantly via JS to bypass CSS transitions
+                bodyElement.style.backgroundColor = 'var(--grid-background)';
+                bodyElement.style.backgroundImage = 'radial-gradient(var(--dot-color) 1px, transparent 1px)';
+                bodyElement.style.backgroundSize = '30px 30px';
 
                 // Fade out the console log
                 outputElement.style.transition = 'opacity 0.5s ease-out';
@@ -1245,7 +1251,8 @@
             if (browserGoButton) {
                 browserGoButton.addEventListener('click', () => {
                     loadBrowserUrl(browserUrlInput.value);
-                });
+                }
+            );
             }
 
             // 2. Enter Key Press in Input Field
