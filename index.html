@@ -36,9 +36,9 @@
             padding: 2rem;
             box-sizing: border-box;
             
-            /* Background transition is now only used for the smooth fade back to black on restart/reset */
+            /* Background transition is defined here for smooth exit/restart fades */
             background-image: none; 
-            transition: background-color 1s ease-in-out, background-image 1s ease-in-out;
+            transition: background-color 0.5s ease-in-out, background-image 0.5s ease-in-out;
             cursor: default; 
         }
         
@@ -818,13 +818,17 @@
                 // Ensure text selection is re-enabled if user manages to exit during boot
                 bodyElement.classList.remove('no-select'); 
 
-                // If taskbar is visible, just log the exit, otherwise restart
-                if (taskbar.classList.contains('opacity-0')) {
+                // If taskbar is visible, the system is fully operational (Dashboard State)
+                if (!taskbar.classList.contains('opacity-0')) {
+                    // FIX: Revert the custom dot background back to pure black/default state with a transition.
+                    // The CSS transition defined on the body will handle the fade.
+                    bodyElement.style.backgroundColor = 'var(--background-black)'; // #000000
+                    bodyElement.style.backgroundImage = 'none';
+                    bodyElement.style.backgroundSize = 'auto';
+                    console.log("[T3CH OS]: Exited fullscreen. Dashboard background reverted to black.");
+                } else {
                     // System was still booting, so hard restart
                     resetSystemState();
-                } else {
-                    // System was fully operational
-                    console.log("[T3CH OS]: Exited fullscreen. Cursor restored.");
                 }
             }
         }
@@ -887,11 +891,16 @@
             browserModal.classList.remove('is-open'); // Close Browser
 
             // 3. Ensure body background is pure black immediately
-            bodyElement.style.transition = 'background-color 0s, background-image 0s'; 
+            // Temporarily disable transition for instant state reset, then restore
+            bodyElement.style.transition = 'none'; 
             bodyElement.style.backgroundColor = 'var(--background-black)';
-            // FIX: Ensure background image is also reset to 'none' on restart
             bodyElement.style.backgroundImage = 'none'; 
             
+            // Restore the transition after a very short delay
+            setTimeout(() => {
+                bodyElement.style.transition = ''; // Reverts to CSS defined transition
+            }, 50);
+
             // 4. Show the start wrapper again
             container.classList.remove('hidden'); // Ensure container is NOT hidden before reset
             container.style.display = 'none'; // Then hide it properly
@@ -967,10 +976,16 @@
                     currentCursor.remove();
                 }
                 
-                // FIX: Apply dot background styles instantly via JS to bypass CSS transitions
+                // FIX REFINEMENT: Apply styles instantly, then re-enable transition for cleanup
+                bodyElement.style.transition = 'none'; // Temporarily disable transition for instant application
                 bodyElement.style.backgroundColor = 'var(--grid-background)';
                 bodyElement.style.backgroundImage = 'radial-gradient(var(--dot-color) 1px, transparent 1px)';
                 bodyElement.style.backgroundSize = '30px 30px';
+                // Re-enable the CSS transition for future changes (like fullscreen exit)
+                setTimeout(() => {
+                    bodyElement.style.transition = ''; 
+                }, 50);
+
 
                 // Fade out the console log
                 outputElement.style.transition = 'opacity 0.5s ease-out';
@@ -1102,7 +1117,8 @@
             } else if (lowerQuery.includes("restart")) {
                 responseText = "Initiating shutdown sequence protocol 0x01. Please use the Taskbar RESTART function for core reboot.";
             } else if (lowerQuery.includes("code") || lowerQuery.includes("luau")) {
-                responseText = "Accessing data on external code... Luau language requires the 'local' keyword for scope management. This is a critical divergence from standard Lua. I have logged this for your reference, Operator.";
+                // Personalized response for Luau
+                responseText = "Accessing data on external code... Luau language requires the 'local' keyword for scope management. This is a critical divergence from standard Lua, Operator Bingsa. I have logged this for your reference.";
             } else {
                 responseText = `Query received: "${userQuery}". Processing semantic cluster... Protocol key matching low. Please specify a T3CH command or system parameter.`;
             }
