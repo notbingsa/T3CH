@@ -42,6 +42,14 @@
             cursor: none !important;
         }
 
+        /* NEW: Class to disable text selection during bootup */
+        .no-select {
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* IE10+ */
+            user-select: none;         /* Standard */
+        }
+
         /* Class applied to body in final state */
         .dot-background {
             background-color: var(--grid-background); /* Switch to dark grey: #111111 */
@@ -804,6 +812,8 @@
             if (!isFullscreen) {
                 // If exited fullscreen, ensure cursor is visible
                 bodyElement.classList.remove('cursor-none'); 
+                // Ensure text selection is re-enabled if user manages to exit during boot
+                bodyElement.classList.remove('no-select'); 
 
                 // If taskbar is visible, just log the exit, otherwise restart
                 if (taskbar.classList.contains('opacity-0')) {
@@ -823,10 +833,16 @@
             // 1. Initiate Fullscreen on the whole body element (will fail gracefully if restricted)
             enterFullscreen(bodyElement);
             
+            // NEW: Disable text selection immediately
+            bodyElement.classList.add('no-select'); 
+            
             // 2. Hide the start button wrapper
             startWrapper.style.opacity = '0';
             setTimeout(() => {
                 startWrapper.classList.add('hidden');
+                // FIX: Disable pointer events so the invisible div doesn't block clicks
+                startWrapper.style.pointerEvents = 'none'; 
+                
                 container.classList.remove('hidden'); // Show T3CH container
                 
                 // Show console log element before typing starts
@@ -857,6 +873,9 @@
             // 1. Ensure cursor is visible (in case of failed boot or early exit)
             bodyElement.classList.remove('cursor-none');
             
+            // NEW: Ensure text selection is re-enabled if user manages to exit during boot
+            bodyElement.classList.remove('no-select');
+            
             // 2. Hide all final state elements and modals
             timeDateFooter.classList.add('opacity-0');
             taskbar.classList.add('opacity-0');
@@ -875,6 +894,8 @@
             container.style.pointerEvents = 'auto'; // Reset pointer events
             startWrapper.classList.remove('hidden');
             startWrapper.style.opacity = '1';
+            // IMPORTANT: Re-enable pointer events for the button to be clickable on restart
+            startWrapper.style.pointerEvents = 'auto'; 
             
             // 5. Hide the console output (if it was visible)
             outputElement.style.opacity = '0';
@@ -985,9 +1006,10 @@
                         timeDateFooter.classList.remove('opacity-0');
                         taskbar.classList.remove('opacity-0'); // Show taskbar
                         
-                        // 4. RESTORE CURSOR
+                        // 4. RESTORE CURSOR AND SELECTION
                         bodyElement.classList.remove('cursor-none'); 
-                        console.log("[T3CH OS]: Dashboard loaded. Cursor restored for interaction.");
+                        bodyElement.classList.remove('no-select'); // RE-ENABLE TEXT SELECTION
+                        console.log("[T3CH OS]: Dashboard loaded. Cursor restored for interaction and selection.");
 
                         // Start the clock updates
                         updateTimeAndDate(); 
