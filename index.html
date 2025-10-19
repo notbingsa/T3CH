@@ -150,13 +150,15 @@
         
         /* --- Time/Date Styling (Top Right) --- */
         #time-date-footer {
-            position: absolute;
-            top: 0; 
-            right: 0; 
+            /* CRITICAL FIX: Changed from absolute to FIXED so it stays relative to the viewport */
+            position: fixed; 
+            top: 2rem; /* Consistent padding */
+            right: 2rem; /* Consistent padding */
             left: auto;
             transform: none; 
             text-align: right; 
             width: auto;
+            z-index: 100; /* Ensure it's above the main container */
         }
 
         .large-time {
@@ -396,10 +398,12 @@
             
 </div>
             
-        
-<div id="time-date-footer" class="opacity-0 transition-opacity duration-500">
-            
-</div>
+        <!-- THE TIME/DATE FOOTER WAS MOVED OUTSIDE THIS CONTAINER -->
+    </div>
+    
+    <!-- CRITICAL FIX: TIME/DATE FOOTER MOVED HERE AS A FIXED ELEMENT -->
+    <div id="time-date-footer" class="opacity-0 transition-opacity duration-500">
+        <!-- Content inserted by JS updateTimeAndDate() -->
     </div>
     
     
@@ -866,7 +870,9 @@
             bodyElement.style.backgroundColor = 'var(--background-black)';
             
             // 4. Show the start wrapper again
-            container.classList.add('hidden');
+            container.classList.remove('hidden'); // Ensure container is NOT hidden before reset
+            container.style.display = 'none'; // Then hide it properly
+            container.style.pointerEvents = 'auto'; // Reset pointer events
             startWrapper.classList.remove('hidden');
             startWrapper.style.opacity = '1';
             
@@ -967,28 +973,30 @@
                     const totalAnimationDuration = 5600; 
 
                     setTimeout(() => {
-                        // Step 1: Logo starts to disappear (0.5s transition)
+                        // FIX: 1. INSTANTLY DISABLE POINTER EVENTS ON BLOCKING CONTAINER
+                        container.style.pointerEvents = 'none';
+
+                        // 2. Logo starts to disappear (0.5s transition)
                         finalLogoDisplay.style.transition = 'opacity 0.5s ease-out';
                         finalLogoDisplay.classList.add('opacity-0');
 
-                        // CRITICAL FIX: After the logo fades out (0.5s), hide the container itself 
-                        // to ensure it doesn't block taskbar clicks.
+                        // 3. Time/Date and TASKBAR appear immediately
+                        // Now that the timeDateFooter is outside the container, this works!
+                        timeDateFooter.classList.remove('opacity-0');
+                        taskbar.classList.remove('opacity-0'); // Show taskbar
+                        
+                        // 4. RESTORE CURSOR
+                        bodyElement.classList.remove('cursor-none'); 
+                        console.log("[T3CH OS]: Dashboard loaded. Cursor restored for interaction.");
+
+                        // Start the clock updates
+                        updateTimeAndDate(); 
+                        setInterval(updateTimeAndDate, 1000); 
+
+                        // 5. Fully hide the container after the visual fade is complete (0.5s)
                         setTimeout(() => {
                             container.style.display = 'none'; 
                         }, 500);
-
-                        // Step 2: Time/Date and TASKBAR appear 500ms later
-                        setTimeout(() => {
-                            timeDateFooter.classList.remove('opacity-0');
-                            taskbar.classList.remove('opacity-0'); // Show taskbar
-                            
-                            // *** STEP 3: RESTORE CURSOR ***
-                            bodyElement.classList.remove('cursor-none'); 
-                            console.log("[T3CH OS]: Dashboard loaded. Cursor restored for interaction.");
-
-                            updateTimeAndDate(); 
-                            setInterval(updateTimeAndDate, 1000); 
-                        }, 500); 
                         
                     }, totalAnimationDuration);
                     
@@ -1002,6 +1010,8 @@
          * Opens the AETHER Chat Modal.
          */
         function openAetherChat() {
+            chatModal.classList.remove('is-open'); // Close any other modal first
+            browserModal.classList.remove('is-open'); 
             chatModal.classList.add('is-open');
             chatInput.focus();
             scrollToBottom();
@@ -1175,7 +1185,8 @@
          * Opens the T3CH Browser Modal.
          */
         function openBrowser() {
-            chatModal.classList.remove('is-open'); // Ensure chat is closed if open
+            chatModal.classList.remove('is-open'); // Close any other modal first
+            browserModal.classList.remove('is-open');
             browserModal.classList.add('is-open');
 
             if (browserHistory.length === 0) {
